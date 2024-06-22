@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
 
 
 class Passcard(models.Model):
@@ -10,7 +13,7 @@ class Passcard(models.Model):
     def __str__(self):
         if self.is_active:
             return self.owner_name
-        return f'{self.owner_name} (inactive)'
+        return f"{self.owner_name} (inactive)"
 
 
 class Visit(models.Model):
@@ -20,11 +23,25 @@ class Visit(models.Model):
     leaved_at = models.DateTimeField(null=True)
 
     def __str__(self):
-        return '{user} entered at {entered} {leaved}'.format(
+        return "{user} entered at {entered} {leaved}".format(
             user=self.passcard.owner_name,
             entered=self.entered_at,
             leaved=(
-                f'leaved at {self.leaved_at}'
-                if self.leaved_at else 'not leaved'
-            )
+                f"leaved at {self.leaved_at}"
+                if self.leaved_at
+                else "not leaved"
+            ),
         )
+
+    def get_duration(self):
+        enter_time = timezone.localtime(value=self.entered_at)
+        exit_time = timezone.localtime(value=self.leaved_at)
+        return exit_time - enter_time
+
+    def is_long(self, minutes=60):
+        enter_time = timezone.localtime(value=self.entered_at)
+        exit_time = timezone.localtime(value=self.leaved_at)
+        delta = exit_time - enter_time
+        if delta / timedelta(minutes=minutes) > 1:
+            return True
+        return False

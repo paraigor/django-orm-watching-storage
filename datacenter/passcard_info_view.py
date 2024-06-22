@@ -1,21 +1,27 @@
-from datacenter.models import Passcard
-from datacenter.models import Visit
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
+
+from datacenter.models import Passcard, Visit
 
 
 def passcard_info_view(request, passcode):
-    passcard = Passcard.objects.all()[0]
-    # Программируем здесь
+    passcard = get_object_or_404(Passcard, passcode=passcode)
+    passcard_visits = Visit.objects.filter(passcard=passcard)
 
-    this_passcard_visits = [
-        {
-            'entered_at': '11-04-2018',
-            'duration': '25:03',
-            'is_strange': False
-        },
-    ]
+    this_passcard_visits = []
+
+    for visit in passcard_visits:
+        this_passcard_visit = {
+                "entered_at": visit.entered_at,
+                "duration": visit.get_duration
+                if visit.leaved_at
+                else "not leaved",
+                "is_strange": visit.is_long,
+            }
+        this_passcard_visits.append(this_passcard_visit)
+
     context = {
-        'passcard': passcard,
-        'this_passcard_visits': this_passcard_visits
+        "passcard": passcard,
+        "this_passcard_visits": this_passcard_visits,
     }
-    return render(request, 'passcard_info.html', context)
+
+    return render(request, "passcard_info.html", context)
