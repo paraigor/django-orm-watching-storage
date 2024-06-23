@@ -42,6 +42,4 @@ class Visit(models.Model):
         enter_time = timezone.localtime(value=self.entered_at)
         exit_time = timezone.localtime(value=self.leaved_at)
         delta = exit_time - enter_time
-        if delta / timedelta(minutes=minutes) > 1:
-            return True
-        return False
+        return delta / timedelta(minutes=minutes) > 1
